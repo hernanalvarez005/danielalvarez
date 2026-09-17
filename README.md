@@ -88,14 +88,17 @@ npx supabase db reset
 ### Usuario de prueba
 
 Después de aplicar la migración inicial, podés crear una organización y un
-usuario admin de prueba con:
+usuario admin de prueba. El script no trae ningún email/contraseña por
+default a propósito — agregá `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD` a
+tu `.env.local` (nunca se commitean) y corré:
 
 ```bash
 node --env-file=.env.local scripts/seed-admin.mjs
 ```
 
-El script es idempotente: si el usuario o la organización ya existen, los
-reutiliza. Imprime el email/contraseña generados al final.
+Si falta alguna de las dos, el script aborta con un mensaje claro en vez
+de usar un valor por defecto. Es idempotente: si el usuario o la
+organización ya existen, los reutiliza.
 
 ## Ejecución local
 

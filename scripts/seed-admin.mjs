@@ -1,28 +1,40 @@
 // Creates (or reuses) one organization and one admin user, so there is
 // something to log in with after the initial migration is applied.
 //
-// Requires SUPABASE_SERVICE_ROLE_KEY, so run it with the service role env
-// loaded and NEVER from a browser or client-side context:
+// Requires SUPABASE_SERVICE_ROLE_KEY, SEED_ADMIN_EMAIL and
+// SEED_ADMIN_PASSWORD as env vars — none of them have defaults, on
+// purpose, so no credential ever lives in this file or in version
+// control. Put them in .env.local (gitignored) or pass them inline:
 //
 //   node --env-file=.env.local scripts/seed-admin.mjs
+//   SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... node --env-file=.env.local scripts/seed-admin.mjs
 //
-// Optional env overrides: SEED_ORG_NAME, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD.
+// Optional env override: SEED_ORG_NAME (not a credential, safe to default).
 
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const adminEmail = process.env.SEED_ADMIN_EMAIL;
+const adminPassword = process.env.SEED_ADMIN_PASSWORD;
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+const missing = [
+  !SUPABASE_URL && "NEXT_PUBLIC_SUPABASE_URL",
+  !SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY",
+  !adminEmail && "SEED_ADMIN_EMAIL",
+  !adminPassword && "SEED_ADMIN_PASSWORD",
+].filter(Boolean);
+
+if (missing.length > 0) {
   console.error(
-    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Run with --env-file=.env.local.",
+    `Missing required env var(s): ${missing.join(", ")}.\n` +
+      "Set them in .env.local (run with --env-file=.env.local) or inline on the command. " +
+      "There are no defaults for the admin credentials on purpose.",
   );
   process.exit(1);
 }
 
 const orgName = process.env.SEED_ORG_NAME ?? "Organización Demo";
-const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@demo.local";
-const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "admin-demo-2026";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
