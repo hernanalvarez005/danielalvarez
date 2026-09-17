@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CancelOrderDialog } from "@/components/spray-orders/cancel-order-dialog";
+import { ExecutionPanel } from "@/components/spray-executions/execution-panel";
 import { getWorkOrder } from "@/lib/spray-orders/queries";
+import { getSprayExecution } from "@/lib/spray-executions/queries";
 import {
   calculateSprayVolume,
   calculateTheoreticalQuantity,
@@ -25,7 +27,11 @@ function formatDate(value: string | null): string {
 
 export default async function OrdenDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [order, authState] = await Promise.all([getWorkOrder(id), getAuthContext()]);
+  const [order, authState, execution] = await Promise.all([
+    getWorkOrder(id),
+    getAuthContext(),
+    getSprayExecution(id),
+  ]);
   if (!order) notFound();
 
   const role = authState.status === "ok" ? authState.context.role : null;
@@ -167,6 +173,11 @@ export default async function OrdenDetallePage({ params }: { params: Promise<{ i
             <p className="text-sm whitespace-pre-wrap">{order.notes}</p>
           </CardContent>
         </Card>
+      ) : null}
+
+      {execution &&
+      (order.status === "in_progress" || order.status === "pending_review" || order.status === "completed") ? (
+        <ExecutionPanel execution={execution} status={order.status} />
       ) : null}
     </div>
   );

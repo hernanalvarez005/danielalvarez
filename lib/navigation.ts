@@ -16,6 +16,7 @@ import {
   Receipt,
   Landmark,
   Settings,
+  ClipboardList,
 } from "lucide-react";
 
 export interface NavItem {
@@ -132,3 +133,15 @@ export const NAV_SECTIONS: NavSection[] = [
 ];
 
 export const ALL_NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((section) => section.items);
+
+/**
+ * Applicators work from a purpose-built mobile screen, not the
+ * admin/engineer backoffice -- they get a deliberately minimal nav
+ * instead of a role-filtered version of NAV_SECTIONS.
+ */
+export const APPLICATOR_NAV_SECTIONS: NavSection[] = [
+  {
+    label: "Inicio",
+    items: [{ label: "Mis trabajos", href: "/mis-trabajos", icon: ClipboardList }],
+  },
+];

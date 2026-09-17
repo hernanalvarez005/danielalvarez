@@ -4,14 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { NAV_SECTIONS } from "@/lib/navigation";
+import { NAV_SECTIONS, APPLICATOR_NAV_SECTIONS } from "@/lib/navigation";
+import type { MemberRole } from "@/types/database";
 
-export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+export function NavContent({ role, onNavigate }: { role: MemberRole; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const sections = role === "applicator" ? APPLICATOR_NAV_SECTIONS : NAV_SECTIONS;
 
   return (
     <nav className="flex flex-col gap-6 px-3 py-4">
-      {NAV_SECTIONS.map((section) => (
+      {sections.map((section) => (
         <div key={section.label} className="flex flex-col gap-1">
           <span className="px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
             {section.label}

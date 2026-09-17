@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Brand } from "@/components/layout/brand";
 import { NavContent } from "@/components/layout/nav-content";
+import type { MemberRole } from "@/types/database";
 
-export function MobileNav() {
+export function MobileNav({ role }: { role: MemberRole }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -27,7 +28,7 @@ export function MobileNav() {
           <SheetTitle render={<Brand className="!text-sidebar-foreground" />} />
         </SheetHeader>
         <div className="overflow-y-auto">
-          <NavContent onNavigate={() => setOpen(false)} />
+          <NavContent role={role} onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>
     </Sheet>

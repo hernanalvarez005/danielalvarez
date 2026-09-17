@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { CalendarClock, ClipboardCheck, ListTodo, PlayCircle, Sprout } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -7,6 +8,14 @@ import { getAuthContext } from "@/lib/auth/get-auth-context";
 export default async function DashboardPage() {
   const authState = await getAuthContext();
   const auth = authState.status === "ok" ? authState.context : null;
+
+  // Applicators work from their own mobile screen, not this backoffice
+  // dashboard -- /dashboard is still the default post-login redirect
+  // (it doesn't know the role yet), so this is where the role-aware
+  // landing actually happens.
+  if (auth?.role === "applicator") {
+    redirect("/mis-trabajos");
+  }
 
   return (
     <div className="flex flex-col gap-6">

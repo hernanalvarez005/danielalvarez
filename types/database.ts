@@ -599,6 +599,151 @@ export interface Database {
           },
         ];
       };
+      spray_executions: {
+        Row: {
+          work_order_id: string;
+          organization_id: string;
+          started_at: string | null;
+          started_by: string | null;
+          finished_at: string | null;
+          finished_by: string | null;
+          actual_area_ha: number | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          work_order_id: string;
+          organization_id: string;
+          started_at?: string | null;
+          started_by?: string | null;
+          finished_at?: string | null;
+          finished_by?: string | null;
+          actual_area_ha?: number | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          work_order_id?: string;
+          organization_id?: string;
+          started_at?: string | null;
+          started_by?: string | null;
+          finished_at?: string | null;
+          finished_by?: string | null;
+          actual_area_ha?: number | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spray_executions_work_order_id_fkey";
+            columns: ["work_order_id"];
+            isOneToOne: true;
+            referencedRelation: "work_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      spray_loads: {
+        Row: {
+          id: string;
+          organization_id: string;
+          work_order_id: string;
+          load_number: number;
+          water_liters: number;
+          notes: string | null;
+          client_request_id: string;
+          recorded_at: string;
+          recorded_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          work_order_id: string;
+          load_number?: number;
+          water_liters: number;
+          notes?: string | null;
+          client_request_id: string;
+          recorded_at?: string;
+          recorded_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          work_order_id?: string;
+          load_number?: number;
+          water_liters?: number;
+          notes?: string | null;
+          client_request_id?: string;
+          recorded_at?: string;
+          recorded_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spray_loads_work_order_id_organization_id_fkey";
+            columns: ["work_order_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "work_orders";
+            referencedColumns: ["id", "organization_id"];
+          },
+        ];
+      };
+      spray_load_products: {
+        Row: {
+          id: string;
+          organization_id: string;
+          spray_load_id: string;
+          product_id: string;
+          quantity_value: number;
+          quantity_unit: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          spray_load_id: string;
+          product_id: string;
+          quantity_value: number;
+          quantity_unit: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          spray_load_id?: string;
+          product_id?: string;
+          quantity_value?: number;
+          quantity_unit?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spray_load_products_spray_load_id_organization_id_fkey";
+            columns: ["spray_load_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "spray_loads";
+            referencedColumns: ["id", "organization_id"];
+          },
+          {
+            foreignKeyName: "spray_load_products_product_id_organization_id_fkey";
+            columns: ["product_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id", "organization_id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -639,6 +784,39 @@ export interface Database {
         };
         Returns: string;
       };
+      start_spray_application: {
+        Args: {
+          p_work_order_id: string;
+        };
+        Returns: string;
+      };
+      finish_spray_application: {
+        Args: {
+          p_work_order_id: string;
+          p_actual_area_ha: number;
+          p_notes: string | null;
+        };
+        Returns: string;
+      };
+      register_spray_load: {
+        Args: {
+          p_work_order_id: string;
+          p_client_request_id: string;
+          p_water_liters: number;
+          p_notes: string | null;
+          p_products: SprayLoadProductInput[];
+        };
+        Returns: string;
+      };
+      update_spray_load: {
+        Args: {
+          p_spray_load_id: string;
+          p_water_liters: number;
+          p_notes: string | null;
+          p_products: SprayLoadProductInput[];
+        };
+        Returns: string;
+      };
     };
     Enums: {
       member_role: MemberRole;
@@ -652,4 +830,10 @@ export interface SprayOrderProductInput {
   dose_value: number;
   dose_unit: string;
   sort_order: number;
+}
+
+export interface SprayLoadProductInput {
+  product_id: string;
+  quantity_value: number;
+  quantity_unit: string;
 }
