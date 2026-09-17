@@ -1,24 +1,37 @@
-import { SprayCan } from "lucide-react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { WorkOrdersList } from "@/components/spray-orders/work-orders-list";
+import { listWorkOrders } from "@/lib/spray-orders/queries";
+import { getAuthContext } from "@/lib/auth/get-auth-context";
+import { can } from "@/lib/permissions/roles";
 
-export default function PulverizacionesPage() {
+export default async function PulverizacionesPage() {
+  const [orders, authState] = await Promise.all([listWorkOrders(), getAuthContext()]);
+  const role = authState.status === "ok" ? authState.context.role : null;
+  const canCreate = can(role, "work-orders:create");
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Pulverizaciones"
-        description="Órdenes de trabajo, recetas, ejecución y conciliación de pulverizaciones."
-      />
-      <Card>
-        <CardContent className="py-12">
-          <EmptyState
-            icon={SprayCan}
-            title="Todavía no hay órdenes de pulverización"
-            description="Este es el primer módulo operativo de la plataforma. La creación de órdenes, recetas, cargas de tanque y conciliación se incorporan en la próxima etapa."
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageHeader
+          title="Pulverizaciones"
+          description="Órdenes de trabajo, recetas, ejecución y conciliación de pulverizaciones."
+        />
+        {canCreate && orders.length > 0 ? (
+          <Button
+            nativeButton={false}
+            render={
+              <Link href="/pulverizaciones/nueva">
+                <Plus className="size-4" />
+                Nueva orden
+              </Link>
+            }
           />
-        </CardContent>
-      </Card>
+        ) : null}
+      </div>
+      <WorkOrdersList orders={orders} canCreate={canCreate} />
     </div>
   );
 }

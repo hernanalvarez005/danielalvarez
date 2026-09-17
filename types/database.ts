@@ -431,12 +431,225 @@ export interface Database {
           },
         ];
       };
+      work_orders: {
+        Row: {
+          id: string;
+          organization_id: string;
+          order_number: number;
+          operation_type: string;
+          customer_id: string;
+          field_id: string;
+          plot_id: string;
+          campaign_id: string | null;
+          crop_id: string | null;
+          applicator_id: string | null;
+          scheduled_date: string | null;
+          planned_area_ha: number;
+          status: string;
+          notes: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          order_number?: number;
+          operation_type?: string;
+          customer_id: string;
+          field_id: string;
+          plot_id: string;
+          campaign_id?: string | null;
+          crop_id?: string | null;
+          applicator_id?: string | null;
+          scheduled_date?: string | null;
+          planned_area_ha: number;
+          status?: string;
+          notes?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          order_number?: number;
+          operation_type?: string;
+          customer_id?: string;
+          field_id?: string;
+          plot_id?: string;
+          campaign_id?: string | null;
+          crop_id?: string | null;
+          applicator_id?: string | null;
+          scheduled_date?: string | null;
+          planned_area_ha?: number;
+          status?: string;
+          notes?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_customer_id_organization_id_fkey";
+            columns: ["customer_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "organization_id"];
+          },
+          {
+            foreignKeyName: "work_orders_field_id_customer_id_fkey";
+            columns: ["field_id", "customer_id"];
+            isOneToOne: false;
+            referencedRelation: "fields";
+            referencedColumns: ["id", "customer_id"];
+          },
+          {
+            foreignKeyName: "work_orders_plot_id_field_id_fkey";
+            columns: ["plot_id", "field_id"];
+            isOneToOne: false;
+            referencedRelation: "plots";
+            referencedColumns: ["id", "field_id"];
+          },
+        ];
+      };
+      spray_orders: {
+        Row: {
+          work_order_id: string;
+          application_method: string;
+          target_spray_volume_per_ha: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          work_order_id: string;
+          application_method: string;
+          target_spray_volume_per_ha?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          work_order_id?: string;
+          application_method?: string;
+          target_spray_volume_per_ha?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spray_orders_work_order_id_fkey";
+            columns: ["work_order_id"];
+            isOneToOne: true;
+            referencedRelation: "work_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      spray_order_products: {
+        Row: {
+          id: string;
+          organization_id: string;
+          work_order_id: string;
+          product_id: string;
+          dose_value: number;
+          dose_unit: string;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          work_order_id: string;
+          product_id: string;
+          dose_value: number;
+          dose_unit: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          work_order_id?: string;
+          product_id?: string;
+          dose_value?: number;
+          dose_unit?: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spray_order_products_work_order_id_organization_id_fkey";
+            columns: ["work_order_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "work_orders";
+            referencedColumns: ["id", "organization_id"];
+          },
+          {
+            foreignKeyName: "spray_order_products_product_id_organization_id_fkey";
+            columns: ["product_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id", "organization_id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      create_spray_work_order: {
+        Args: {
+          p_customer_id: string;
+          p_field_id: string;
+          p_plot_id: string;
+          p_campaign_id: string | null;
+          p_crop_id: string | null;
+          p_applicator_id: string | null;
+          p_scheduled_date: string | null;
+          p_planned_area_ha: number;
+          p_notes: string | null;
+          p_status: string;
+          p_application_method: string;
+          p_target_spray_volume_per_ha: number | null;
+          p_products: SprayOrderProductInput[];
+        };
+        Returns: string;
+      };
+      update_spray_work_order: {
+        Args: {
+          p_work_order_id: string;
+          p_customer_id: string;
+          p_field_id: string;
+          p_plot_id: string;
+          p_campaign_id: string | null;
+          p_crop_id: string | null;
+          p_applicator_id: string | null;
+          p_scheduled_date: string | null;
+          p_planned_area_ha: number;
+          p_notes: string | null;
+          p_status: string;
+          p_application_method: string;
+          p_target_spray_volume_per_ha: number | null;
+          p_products: SprayOrderProductInput[];
+        };
+        Returns: string;
+      };
+    };
     Enums: {
       member_role: MemberRole;
     };
     CompositeTypes: Record<string, never>;
   };
+}
+
+export interface SprayOrderProductInput {
+  product_id: string;
+  dose_value: number;
+  dose_unit: string;
+  sort_order: number;
 }
