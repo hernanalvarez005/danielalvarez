@@ -2,11 +2,25 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
+// Reachable without a session.
 const PUBLIC_PATHS = ["/login"];
 
 /**
  * Refreshes the Supabase auth session on every request and protects
  * private routes. Called from the root `proxy.ts`.
+ *
+ * This only ever decides AUTHENTICATION ("is there a user?"), never
+ * AUTHORIZATION ("does this user have an active organization
+ * membership?") -- that second question is answered once, in
+ * `getAuthContext()` / `app/(app)/layout.tsx`, which routes a
+ * no-membership user to `/sin-acceso`. Keeping that logic out of here on
+ * purpose is what makes a loop structurally impossible: this function
+ * only ever redirects to `/login` (when there's no user) or to
+ * `/dashboard` (when there's a user on `/login`), and `/sin-acceso`
+ * itself is a normal authenticated route from this function's point of
+ * view -- it's simply not `/login`, so the "already logged in" redirect
+ * never touches it, and its own page doesn't call getAuthContext() at
+ * all, so it can never bounce back into `/login` on its own.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

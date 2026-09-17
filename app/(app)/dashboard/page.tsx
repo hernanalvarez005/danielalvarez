@@ -5,7 +5,8 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { getAuthContext } from "@/lib/auth/get-auth-context";
 
 export default async function DashboardPage() {
-  const auth = await getAuthContext();
+  const authState = await getAuthContext();
+  const auth = authState.status === "ok" ? authState.context : null;
 
   return (
     <div className="flex flex-col gap-6">

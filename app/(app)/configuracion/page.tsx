@@ -6,7 +6,8 @@ import { ROLE_LABELS } from "@/lib/permissions/roles";
 import { getAuthContext } from "@/lib/auth/get-auth-context";
 
 export default async function ConfiguracionPage() {
-  const auth = await getAuthContext();
+  const authState = await getAuthContext();
+  const auth = authState.status === "ok" ? authState.context : null;
 
   return (
     <div className="flex flex-col gap-6">
