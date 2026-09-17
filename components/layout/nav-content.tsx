@@ -13,7 +13,7 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
     <nav className="flex flex-col gap-6 px-3 py-4">
       {NAV_SECTIONS.map((section) => (
         <div key={section.label} className="flex flex-col gap-1">
-          <span className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
             {section.label}
           </span>
           {section.items.map((item) => {
@@ -27,8 +27,8 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
                 className={cn(
                   "flex min-h-10 items-center justify-between gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-secondary text-secondary-foreground"
-                    : "text-foreground/80 hover:bg-secondary/60 hover:text-foreground",
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
                 <span className="flex items-center gap-2">
@@ -36,7 +36,10 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
                   {item.label}
                 </span>
                 {item.comingSoon ? (
-                  <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground">
+                  <Badge
+                    variant="outline"
+                    className="border-sidebar-border text-[10px] font-normal text-sidebar-foreground/60"
+                  >
                     Próximamente
                   </Badge>
                 ) : null}

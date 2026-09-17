@@ -16,10 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "AgroSuite",
-    template: "%s | AgroSuite",
+    default: "Daniel Alvarez | Servicios Agropecuarios",
+    template: "%s | Daniel Alvarez",
   },
-  description: "Plataforma de gestión para contratistas rurales.",
+  description:
+    "Plataforma de gestión operativa de Daniel Alvarez Servicios Agropecuarios: pulverizaciones, siembras y cosechas.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

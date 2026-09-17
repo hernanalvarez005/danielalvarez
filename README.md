@@ -1,9 +1,11 @@
-# AgroSuite
+# Daniel Alvarez — Servicios Agropecuarios
 
-Plataforma de gestión para contratistas rurales en Argentina. Este repositorio
-contiene las **fundaciones del proyecto**: autenticación, arquitectura base,
-modelo multiempresa y shell visual. El primer módulo operativo,
-**Pulverizaciones**, se construye sobre esta base en una etapa posterior.
+Plataforma de gestión operativa para **Daniel Alvarez Servicios
+Agropecuarios**, contratista rural en Argentina (pulverizaciones, siembras
+y cosechas). Este repositorio contiene las **fundaciones del proyecto**:
+autenticación, arquitectura base, modelo multiempresa y shell visual. El
+primer módulo operativo, **Pulverizaciones**, se construye sobre esta base
+en una etapa posterior.
 
 ## Objetivo del proyecto
 
@@ -197,6 +199,24 @@ proxy.ts              Refresca sesión y protege rutas privadas (ex-middleware)
 - El logout es un Server Action (`lib/auth/actions.ts`).
 - No hay flujo de alta pública: los usuarios se provisionan por un admin
   (en esta etapa, vía `scripts/seed-admin.mjs` o el dashboard de Supabase).
+
+## Identidad visual
+
+- Paleta de marca (verde oscuro `#253522`) definida como tokens de diseño
+  en [`app/globals.css`](app/globals.css) (`--primary`, `--sidebar*`,
+  `--success`, `--warning`, junto con los tokens estándar de shadcn). Nada
+  de color hardcodeado en componentes: todo pasa por estos tokens, con
+  variantes para modo oscuro.
+- El sidebar usa el verde de marca como fondo; el resto de la app se
+  mantiene neutro (blanco/gris) para evitar sobrecargar de verde.
+- [`components/layout/brand.tsx`](components/layout/brand.tsx) es un
+  lockup de texto ("DANIEL ALVAREZ / Servicios Agropecuarios") que
+  reemplaza al logo real hasta que se provea el archivo — todo lo que lo
+  usa (sidebar, drawer mobile, login) sigue funcionando visualmente sin él.
+- [`components/shared/status-badge.tsx`](components/shared/status-badge.tsx)
+  centraliza el vocabulario de estados de las futuras órdenes de trabajo
+  (Pendiente/En ejecución/Para revisar/Finalizado/Cancelado), siempre con
+  ícono + texto, nunca solo color.
 
 ## Deploy en Vercel
 

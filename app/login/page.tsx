@@ -1,4 +1,5 @@
 import { LoginForm } from "@/components/auth/login-form";
+import { Brand } from "@/components/layout/brand";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function LoginPage({
@@ -9,7 +10,8 @@ export default async function LoginPage({
   const { redirectTo } = await searchParams;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-muted/40 px-4">
+      <Brand size="lg" className="items-center text-primary" />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">Iniciar sesión</CardTitle>

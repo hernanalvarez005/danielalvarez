@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Brand } from "@/components/layout/brand";
 import { NavContent } from "@/components/layout/nav-content";
 
 export function MobileNav() {
@@ -18,11 +19,12 @@ export function MobileNav() {
           </Button>
         }
       />
-      <SheetContent side="left" className="w-72 p-0">
-        <SheetHeader className="h-16 justify-center border-b px-5">
-          <SheetTitle className="text-left text-base font-semibold tracking-tight">
-            AgroSuite
-          </SheetTitle>
+      <SheetContent
+        side="left"
+        className="w-72 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+      >
+        <SheetHeader className="h-16 justify-center border-b border-sidebar-border px-5">
+          <SheetTitle render={<Brand className="!text-sidebar-foreground" />} />
         </SheetHeader>
         <div className="overflow-y-auto">
           <NavContent onNavigate={() => setOpen(false)} />
