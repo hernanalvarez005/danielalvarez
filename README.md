@@ -209,10 +209,10 @@ proxy.ts              Refresca sesión y protege rutas privadas (ex-middleware)
   variantes para modo oscuro.
 - El sidebar usa el verde de marca como fondo; el resto de la app se
   mantiene neutro (blanco/gris) para evitar sobrecargar de verde.
-- [`components/layout/brand.tsx`](components/layout/brand.tsx) es un
-  lockup de texto ("DANIEL ALVAREZ / Servicios Agropecuarios") que
-  reemplaza al logo real hasta que se provea el archivo — todo lo que lo
-  usa (sidebar, drawer mobile, login) sigue funcionando visualmente sin él.
+- [`components/layout/brand.tsx`](components/layout/brand.tsx) expone
+  `Brand` (marca compacta + wordmark, para sidebar/topbar/drawer mobile) y
+  `BrandMark` (logo circular completo, para la pantalla de login), ambos
+  usando `public/logo.jpeg`.
 - [`components/shared/status-badge.tsx`](components/shared/status-badge.tsx)
   centraliza el vocabulario de estados de las futuras órdenes de trabajo
   (Pendiente/En ejecución/Para revisar/Finalizado/Cancelado), siempre con
@@ -220,12 +220,21 @@ proxy.ts              Refresca sesión y protege rutas privadas (ex-middleware)
 
 ## Deploy en Vercel
 
-1. Importar el repositorio en Vercel.
-2. Configurar las variables de entorno (`NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY`) en el proyecto de Vercel. No configures
-   `SUPABASE_SERVICE_ROLE_KEY` ahí salvo que agregues una ruta de servidor
-   que realmente la necesite.
-3. Deploy. El framework se detecta automáticamente.
+1. Importar el repositorio en Vercel (framework Next.js, detectado
+   automáticamente; no hace falta `vercel.json`).
+2. Configurar en el proyecto de Vercel (Production, Preview y Development)
+   solo estas dos variables, ambas públicas a propósito:
+   `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+   **No** configures `SUPABASE_SERVICE_ROLE_KEY` en Vercel — la app en
+   runtime nunca la necesita (el server client usa la anon key + la sesión
+   del usuario, protegida por RLS); esa key solo se usa en
+   `scripts/seed-admin.mjs`, ejecutado a mano en local.
+3. En Supabase → Authentication → URL Configuration, seteá **Site URL** a
+   la URL de producción de Vercel, y agregá esa misma URL (y la de cada
+   preview que uses) a **Redirect URLs**. No es estrictamente necesario
+   para el login por password de esta fase, pero lo dejás listo para
+   magic link / reset de contraseña más adelante.
+4. Deploy.
 
 ## Calidad
 
