@@ -1,36 +1,216 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AgroSuite
 
-## Getting Started
+Plataforma de gestión para contratistas rurales en Argentina. Este repositorio
+contiene las **fundaciones del proyecto**: autenticación, arquitectura base,
+modelo multiempresa y shell visual. El primer módulo operativo,
+**Pulverizaciones**, se construye sobre esta base en una etapa posterior.
 
-First, run the development server:
+## Objetivo del proyecto
+
+Reemplazar el doble control manual de pulverizaciones (orden de trabajo del
+ingeniero vs. talonario del aplicador) por un único flujo:
+
+```
+Orden de trabajo → Receta → Ejecución → Cargas de tanque
+  → Finalización → Conciliación previsto vs. real → Revisión del ingeniero
+```
+
+Ese flujo todavía no está implementado. Esta etapa deja lista la base sobre
+la que se va a construir: login, multiempresa, roles, layout autenticado y
+navegación.
+
+## Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router, Turbopack)
+- TypeScript (modo estricto)
+- Tailwind CSS v4
+- [shadcn/ui](https://ui.shadcn.com) (sobre [Base UI](https://base-ui.com), no Radix)
+- [Supabase](https://supabase.com) — Postgres, Auth, Row Level Security
+- Despliegue: Vercel
+
+## Requisitos
+
+- Node.js 20+
+- Una cuenta y proyecto de Supabase
+
+## Instalación
+
+```bash
+npm install
+```
+
+## Variables de entorno
+
+Copiá `.env.example` a `.env.local` y completá con los datos de tu proyecto
+Supabase (Project Settings → API):
+
+```bash
+cp .env.example .env.local
+```
+
+| Variable                        | Dónde se usa                          | Pública |
+| -------------------------------- | -------------------------------------- | ------- |
+| `NEXT_PUBLIC_SUPABASE_URL`       | Cliente browser y servidor             | Sí      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Cliente browser y servidor             | Sí      |
+| `SUPABASE_SERVICE_ROLE_KEY`      | Scripts de servidor (seed, admin)      | **No**  |
+
+La `service_role` key nunca se usa en código que corre en el browser ni se
+commitea. Solo se usa en scripts locales (`scripts/`) ejecutados a mano.
+
+## Base de datos y migraciones
+
+El schema vive versionado en `supabase/migrations/`. No se hacen cambios
+manuales al schema que no queden reflejados en una migración.
+
+Para aplicar las migraciones a un proyecto Supabase remoto necesitás la
+Supabase CLI autenticada (`npx supabase login`, requiere un access token de
+[supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens))
+o la contraseña de la base:
+
+```bash
+npx supabase link --project-ref <tu-project-ref>
+npx supabase db push
+```
+
+Si no tenés la CLI vinculada, copiá el contenido de cada archivo en
+`supabase/migrations/` (en orden) y ejecutalo desde el **SQL Editor** del
+dashboard de Supabase.
+
+Para desarrollo local con Docker:
+
+```bash
+npx supabase start
+npx supabase db reset
+```
+
+### Usuario de prueba
+
+Después de aplicar la migración inicial, podés crear una organización y un
+usuario admin de prueba con:
+
+```bash
+node --env-file=.env.local scripts/seed-admin.mjs
+```
+
+El script es idempotente: si el usuario o la organización ya existen, los
+reutiliza. Imprime el email/contraseña generados al final.
+
+## Ejecución local
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Modelo multiempresa
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+La plataforma es multiempresa desde el modelo de datos, aunque el MVP
+trabaje con una sola organización activa por usuario.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **`organizations`** — una empresa contratista.
+- **`profiles`** — datos públicos de cada usuario (`auth.users` 1:1).
+- **`organization_members`** — la membresía de un usuario en una
+  organización, con el `role` que determina sus permisos. Un usuario puede
+  en principio pertenecer a más de una organización; la UI actual solo
+  expone la primera membresía activa.
 
-## Learn More
+El `organization_id` **nunca se confía desde el cliente** para autorizar
+acceso a datos: toda lectura/escritura está protegida por Row Level
+Security (RLS) evaluada en la base de datos, no en el frontend.
 
-To learn more about Next.js, take a look at the following resources:
+## Roles
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Rol          | Alcance                                                          |
+| ------------ | ----------------------------------------------------------------- |
+| `admin`      | Acceso general, configuración, gestión de usuarios                |
+| `engineer`   | Backoffice operativo (crea y revisa órdenes en etapas futuras)    |
+| `applicator` | Acceso operativo limitado, pensado para uso desde celular en campo |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+La lógica de permisos está centralizada en
+[`lib/permissions/roles.ts`](lib/permissions/roles.ts) (`can(role, capability)`,
+`hasRole(role, allowed)`) para evitar condicionales de rol dispersos por los
+componentes.
 
-## Deploy on Vercel
+## Estrategia de RLS
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- RLS está habilitado en las tres tablas del MVP; no hay políticas del
+  estilo `USING (true)`.
+- Dos funciones `SECURITY DEFINER` (`is_org_member`, `is_org_admin`) evalúan
+  membresía/rol sin causar recursión de políticas sobre
+  `organization_members` (patrón estándar de Supabase para este problema).
+- `organizations`: los miembros activos pueden leer su organización; solo
+  los `admin` pueden actualizarla. No hay política de creación/borrado
+  desde el cliente en esta etapa.
+- `profiles`: cada usuario lee/edita su propio perfil; además puede leer el
+  perfil de otros usuarios que compartan alguna de sus organizaciones.
+- `organization_members`: los miembros activos de una organización pueden
+  ver la lista de miembros; solo los `admin` pueden agregar, modificar o
+  quitar miembros.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Auditoría (preparado, no implementado)
+
+El modelo deja espacio para incorporar más adelante una tabla `audit_log`
+que registre quién creó/modificó/ejecutó/revisó cada orden de pulverización
+y sus cantidades. No se implementa en esta etapa.
+
+## Estructura del proyecto
+
+```
+app/
+  login/              Página de login (pública)
+  (app)/              Rutas protegidas (requieren sesión)
+    dashboard/
+    pulverizaciones/   Módulo activo (placeholder de esta etapa)
+    clientes/ campos/ productos/ aplicadores/   Placeholders del MVP futuro
+    proximamente/[modulo]/   Módulos aún no desarrollados
+    configuracion/
+components/
+  ui/                 Componentes shadcn/ui (Base UI)
+  layout/             Sidebar, topbar, navegación mobile, menú de usuario
+  shared/             EmptyState, ComingSoon, PageHeader
+  dashboard/          Piezas específicas del dashboard
+  auth/               Formulario de login
+lib/
+  supabase/           Clientes Supabase (browser, server, proxy)
+  auth/               Server Actions de auth + resolución de sesión/organización
+  permissions/         Roles y capacidades centralizadas
+  navigation.ts       Configuración del sidebar (única fuente de verdad)
+types/
+  database.ts         Tipos de la base de datos (a mano; ver nota abajo)
+supabase/
+  migrations/         Schema versionado
+scripts/
+  seed-admin.mjs      Crea organización + usuario admin de prueba
+proxy.ts              Refresca sesión y protege rutas privadas (ex-middleware)
+```
+
+> Nota sobre `types/database.ts`: está escrito a mano para esta etapa
+> inicial. Cuando el schema crezca, generalo desde la CLI con
+> `npx supabase gen types typescript --linked > types/database.ts` para que
+> quede sincronizado automáticamente.
+
+## Autenticación
+
+- Implementada con `@supabase/ssr` (cliente browser + cliente servidor +
+  refresco de sesión en `proxy.ts`, la convención de Next.js 16 que
+  reemplaza a `middleware.ts`).
+- `/login` es la única ruta pública; todo lo demás requiere sesión.
+- El logout es un Server Action (`lib/auth/actions.ts`).
+- No hay flujo de alta pública: los usuarios se provisionan por un admin
+  (en esta etapa, vía `scripts/seed-admin.mjs` o el dashboard de Supabase).
+
+## Deploy en Vercel
+
+1. Importar el repositorio en Vercel.
+2. Configurar las variables de entorno (`NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`) en el proyecto de Vercel. No configures
+   `SUPABASE_SERVICE_ROLE_KEY` ahí salvo que agregues una ruta de servidor
+   que realmente la necesite.
+3. Deploy. El framework se detecta automáticamente.
+
+## Calidad
+
+```bash
+npm run lint     # ESLint
+npx tsc --noEmit # TypeScript estricto
+npm run build    # Build de producción
+```
