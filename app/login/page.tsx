@@ -1,5 +1,5 @@
 import { LoginForm } from "@/components/auth/login-form";
-import { Brand } from "@/components/layout/brand";
+import { BrandMark } from "@/components/layout/brand";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function LoginPage({
@@ -11,7 +11,7 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-muted/40 px-4">
-      <Brand size="lg" className="items-center text-primary" />
+      <BrandMark />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">Iniciar sesión</CardTitle>
