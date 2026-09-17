@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -42,14 +43,16 @@ export function UserMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium">{fullName || "Sin nombre"}</span>
-          <span className="text-xs font-normal text-muted-foreground">{email}</span>
-          <span className="mt-1 flex items-center gap-1 text-xs font-normal text-muted-foreground">
-            <UserIcon className="size-3" />
-            {ROLE_LABELS[role]}
-          </span>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">{fullName || "Sin nombre"}</span>
+            <span className="text-xs font-normal text-muted-foreground">{email}</span>
+            <span className="mt-1 flex items-center gap-1 text-xs font-normal text-muted-foreground">
+              <UserIcon className="size-3" />
+              {ROLE_LABELS[role]}
+            </span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <form action={logout}>
           <DropdownMenuItem
