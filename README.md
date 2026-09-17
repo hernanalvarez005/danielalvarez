@@ -155,36 +155,78 @@ componentes.
 
 El modelo deja espacio para incorporar más adelante una tabla `audit_log`
 que registre quién creó/modificó/ejecutó/revisó cada orden de pulverización
-y sus cantidades. No se implementa en esta etapa.
+y sus cantidades. No se implementa en esta etapa. Sí quedan `created_by`/
+`updated_by` en cada tabla de datos maestros (Fase 2), suficientes para
+saber quién tocó cada registro sin necesitar todavía una tabla dedicada.
+
+## Datos maestros (Fase 2)
+
+Jerarquía principal: **Cliente → Campo → Lote**, más los catálogos planos
+**Campañas**, **Cultivos**, **Productos** y **Aplicadores**. Todo lo que
+usarán después las órdenes de trabajo (pulverizaciones, siembras,
+cosechas, ...) — nada de esa lógica operativa está implementada todavía,
+solo los maestros.
+
+- **Integridad cross-organización a nivel de base**: `fields (customer_id,
+  organization_id)` referencia `customers (id, organization_id)`, y lo
+  mismo `plots → fields`, mediante **foreign keys compuestas** (no
+  triggers, no validación solo en el frontend). Es físicamente imposible
+  que un campo cuelgue de un cliente de otra organización.
+- **`products.default_unit`**: `CHECK (default_unit IN ('l','ml','kg','g','cc'))`
+  en vez de un `ENUM` de Postgres, para poder extender/corregir la lista de
+  unidades con una migración simple más adelante.
+- **RLS**: nueva función `is_org_engineer_or_admin()` — cualquier miembro
+  activo de la organización puede **leer** estos maestros (incluye
+  `applicator`, pensado para las futuras pantallas de campo); solo
+  `admin`/`engineer` pueden **escribir**. Sin política de `DELETE` en
+  ninguna tabla — todo es `active`/`inactive`.
+- **Sin borrado físico**: cada entidad tiene `active boolean default true`;
+  la UI ofrece activar/desactivar, nunca eliminar.
+- Rutas: `/clientes`, `/clientes/[id]`, `/campos`, `/campos/[id]`,
+  `/productos`, `/aplicadores` (con formularios propios), más Campañas y
+  Cultivos dentro de `/configuracion`.
+- Seed opcional (requiere que `scripts/seed-admin.mjs` haya corrido antes,
+  para tener una organización):
+  ```bash
+  node --env-file=.env.local scripts/seed-master-data.mjs
+  ```
+  Crea la campaña `2026/27` y el catálogo de cultivos base (Soja, Maíz,
+  Trigo, Girasol, Cebada, Barbecho) si todavía no existen.
 
 ## Estructura del proyecto
 
 ```
 app/
   login/              Página de login (pública)
-  (app)/              Rutas protegidas (requieren sesión)
+  sin-acceso/          Usuario autenticado sin membership activa (pública, fuera de (app))
+  (app)/              Rutas protegidas (requieren sesión + membership)
     dashboard/
-    pulverizaciones/   Módulo activo (placeholder de esta etapa)
-    clientes/ campos/ productos/ aplicadores/   Placeholders del MVP futuro
+    pulverizaciones/   Módulo activo (placeholder, sin lógica de negocio todavía)
+    clientes/ [id]/ [id]/editar/ nuevo/      CRUD completo (Fase 2)
+    campos/  [id]/ [id]/editar/ nuevo/       CRUD completo (Fase 2)
+    productos/ aplicadores/                  CRUD completo, formularios en Sheet (Fase 2)
     proximamente/[modulo]/   Módulos aún no desarrollados
-    configuracion/
+    configuracion/      + Campañas y Cultivos (Fase 2)
 components/
   ui/                 Componentes shadcn/ui (Base UI)
   layout/             Sidebar, topbar, navegación mobile, menú de usuario
   shared/             EmptyState, ComingSoon, PageHeader
   dashboard/          Piezas específicas del dashboard
   auth/               Formulario de login
+  masters/            Listas, forms y Sheets de datos maestros (Fase 2)
 lib/
   supabase/           Clientes Supabase (browser, server, proxy)
   auth/               Server Actions de auth + resolución de sesión/organización
   permissions/         Roles y capacidades centralizadas
+  masters/            Queries, Server Actions y esquemas Zod de datos maestros (Fase 2)
   navigation.ts       Configuración del sidebar (única fuente de verdad)
 types/
   database.ts         Tipos de la base de datos (a mano; ver nota abajo)
 supabase/
   migrations/         Schema versionado
 scripts/
-  seed-admin.mjs      Crea organización + usuario admin de prueba
+  seed-admin.mjs        Crea organización + usuario admin de prueba
+  seed-master-data.mjs  Crea campaña y cultivos base (Fase 2)
 proxy.ts              Refresca sesión y protege rutas privadas (ex-middleware)
 ```
 

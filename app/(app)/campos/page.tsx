@@ -1,21 +1,22 @@
-import { MapPinned } from "lucide-react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FieldsList } from "@/components/masters/fields-list";
+import { listFields } from "@/lib/masters/fields";
 
-export default function CamposPage() {
+export default async function CamposPage() {
+  const fields = await listFields();
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Campos y lotes" description="Campos y lotes donde se realizan las labores." />
-      <Card>
-        <CardContent className="py-12">
-          <EmptyState
-            icon={MapPinned}
-            title="Todavía no hay campos cargados"
-            description="La gestión de campos y lotes se incorpora junto con el módulo de Pulverizaciones."
-          />
-        </CardContent>
-      </Card>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageHeader title="Campos y lotes" description="Campos y lotes donde se realizan las labores." />
+        {fields.length > 0 ? (
+          <Button nativeButton={false} render={<Link href="/campos/nuevo"><Plus className="size-4" />Nuevo campo</Link>} />
+        ) : null}
+      </div>
+      <FieldsList fields={fields} />
     </div>
   );
 }

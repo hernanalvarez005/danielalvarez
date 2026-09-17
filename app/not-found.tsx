@@ -9,7 +9,7 @@ export default function NotFound() {
       <p className="max-w-sm text-sm text-muted-foreground">
         La página que buscás no existe o fue movida.
       </p>
-      <Button render={<Link href="/dashboard">Volver al dashboard</Link>} />
+      <Button nativeButton={false} render={<Link href="/dashboard">Volver al dashboard</Link>} />
     </div>
   );
 }

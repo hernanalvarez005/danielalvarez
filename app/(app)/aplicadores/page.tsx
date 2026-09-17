@@ -1,21 +1,30 @@
-import { UserCog } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ApplicatorFormSheet } from "@/components/masters/applicator-form-sheet";
+import { ApplicatorsList } from "@/components/masters/applicators-list";
+import { listApplicators, listOrgUserOptions } from "@/lib/masters/applicators";
 
-export default function AplicadoresPage() {
+export default async function AplicadoresPage() {
+  const [applicators, userOptions] = await Promise.all([listApplicators(), listOrgUserOptions()]);
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Aplicadores" description="Operadores que ejecutan las pulverizaciones en el campo." />
-      <Card>
-        <CardContent className="py-12">
-          <EmptyState
-            icon={UserCog}
-            title="Todavía no hay aplicadores cargados"
-            description="La gestión de aplicadores se incorpora junto con el módulo de Pulverizaciones."
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageHeader title="Aplicadores" description="Operadores que ejecutan las pulverizaciones en el campo." />
+        {applicators.length > 0 ? (
+          <ApplicatorFormSheet
+            userOptions={userOptions}
+            trigger={
+              <Button>
+                <Plus className="size-4" />
+                Nuevo aplicador
+              </Button>
+            }
           />
-        </CardContent>
-      </Card>
+        ) : null}
+      </div>
+      <ApplicatorsList applicators={applicators} userOptions={userOptions} />
     </div>
   );
 }

@@ -1,21 +1,29 @@
-import { Package } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ProductFormSheet } from "@/components/masters/product-form-sheet";
+import { ProductsList } from "@/components/masters/products-list";
+import { listProducts } from "@/lib/masters/products";
 
-export default function ProductosPage() {
+export default async function ProductosPage() {
+  const products = await listProducts();
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Productos" description="Productos e insumos utilizados en las aplicaciones." />
-      <Card>
-        <CardContent className="py-12">
-          <EmptyState
-            icon={Package}
-            title="Todavía no hay productos cargados"
-            description="El catálogo de productos se incorpora junto con el módulo de Pulverizaciones."
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageHeader title="Productos" description="Productos e insumos utilizados en las aplicaciones." />
+        {products.length > 0 ? (
+          <ProductFormSheet
+            trigger={
+              <Button>
+                <Plus className="size-4" />
+                Nuevo producto
+              </Button>
+            }
           />
-        </CardContent>
-      </Card>
+        ) : null}
+      </div>
+      <ProductsList products={products} />
     </div>
   );
 }
