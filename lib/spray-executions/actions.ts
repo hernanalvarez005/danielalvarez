@@ -34,6 +34,9 @@ function friendlyError(message: string | undefined, fallback: string): string {
   if (message.includes("Not authorized")) {
     return "No tenés permisos para esta acción.";
   }
+  if (message.includes("solo se pueden corregir con la aplicación en estado observada")) {
+    return message;
+  }
   return fallback;
 }
 
@@ -162,12 +165,45 @@ export async function deleteSprayLoad(
 ): Promise<ExecutionActionResult> {
   await requireOrgContext();
   const supabase = await createClient();
-  const { error } = await supabase.from("spray_loads").delete().eq("id", loadId);
+  const { error } = await supabase.rpc("delete_spray_load", { p_spray_load_id: loadId });
 
   if (error) {
-    return { error: "No se pudo eliminar la carga." };
+    return { error: friendlyError(error.message, "No se pudo eliminar la carga.") };
   }
 
   revalidateWorkOrder(workOrderId);
+  return { error: null };
+}
+
+export interface CorrectExecutionSummaryInput {
+  workOrderId: string;
+  actualAreaHa: number;
+  notes: string | null;
+}
+
+export async function correctExecutionSummary(
+  input: CorrectExecutionSummaryInput,
+): Promise<ExecutionActionResult> {
+  await requireOrgContext();
+  const parsed = finishApplicationSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Revisá la superficie realizada.",
+      fieldErrors: flattenZodError(parsed.error),
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_spray_execution_summary", {
+    p_work_order_id: parsed.data.workOrderId,
+    p_actual_area_ha: parsed.data.actualAreaHa,
+    p_notes: parsed.data.notes,
+  });
+
+  if (error) {
+    return { error: friendlyError(error.message, "No se pudo corregir la superficie realizada.") };
+  }
+
+  revalidateWorkOrder(parsed.data.workOrderId);
   return { error: null };
 }

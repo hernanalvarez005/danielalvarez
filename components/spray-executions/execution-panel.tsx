@@ -43,7 +43,7 @@ export function ExecutionPanel({
               {execution.startedByName ? ` -- ${execution.startedByName}` : ""}
             </p>
           </div>
-          {status === "pending_review" || status === "completed" ? (
+          {status === "pending_review" || status === "completed" || status === "observed" ? (
             <div>
               <p className="text-xs text-muted-foreground">Finalizada</p>
               <p className="text-sm font-medium">
@@ -54,7 +54,7 @@ export function ExecutionPanel({
           ) : null}
         </div>
 
-        {status === "pending_review" || status === "completed" ? (
+        {status === "pending_review" || status === "completed" || status === "observed" ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <p className="text-xs text-muted-foreground">Superficie realizada</p>

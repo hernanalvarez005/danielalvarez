@@ -7,8 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StartApplicationButton } from "@/components/spray-executions/start-application-button";
 import { ExecutionScreen } from "@/components/spray-executions/execution-screen";
 import { ExecutionPanel } from "@/components/spray-executions/execution-panel";
+import { ObservedCorrectionScreen } from "@/components/spray-executions/observed-correction-screen";
 import { getWorkOrder } from "@/lib/spray-orders/queries";
 import { getSprayExecution } from "@/lib/spray-executions/queries";
+import { getLatestObservationNotes } from "@/lib/spray-orders/reviews";
 import { listProducts } from "@/lib/masters/products";
 import {
   calculateSprayVolume,
@@ -25,10 +27,11 @@ function formatDate(value: string | null): string {
 
 export default async function MiTrabajoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [workOrder, execution, products] = await Promise.all([
+  const [workOrder, execution, products, observationNotes] = await Promise.all([
     getWorkOrder(id),
     getSprayExecution(id),
     listProducts(),
+    getLatestObservationNotes(id),
   ]);
   if (!workOrder) notFound();
 
@@ -64,11 +67,22 @@ export default async function MiTrabajoDetallePage({ params }: { params: Promise
               <p className="text-lg font-semibold">
                 {workOrder.fieldName} -- {workOrder.plotName}
               </p>
-              <p className="text-sm text-muted-foreground">Pendiente de revisión</p>
+              <p className="text-sm text-muted-foreground">
+                {workOrder.status === "completed" ? "Aprobada por el ingeniero" : "Pendiente de revisión"}
+              </p>
             </CardContent>
           </Card>
           <ExecutionPanel execution={execution} status={workOrder.status} />
         </>
+      ) : null}
+
+      {workOrder.status === "observed" && execution ? (
+        <ObservedCorrectionScreen
+          workOrder={workOrder}
+          execution={execution}
+          allProducts={allProducts}
+          observationNotes={observationNotes}
+        />
       ) : null}
 
       {workOrder.status === "pending" ? (

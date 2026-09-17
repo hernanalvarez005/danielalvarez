@@ -8,8 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CancelOrderDialog } from "@/components/spray-orders/cancel-order-dialog";
 import { ExecutionPanel } from "@/components/spray-executions/execution-panel";
+import { ReconciliationPanel } from "@/components/spray-orders/reconciliation-panel";
+import { ReviewActions } from "@/components/spray-orders/review-actions";
+import { ReviewHistory } from "@/components/spray-orders/review-history";
 import { getWorkOrder } from "@/lib/spray-orders/queries";
 import { getSprayExecution } from "@/lib/spray-executions/queries";
+import { getWorkOrderReconciliation } from "@/lib/spray-orders/reconciliation-data";
+import { getReviewHistory } from "@/lib/spray-orders/reviews";
 import {
   calculateSprayVolume,
   calculateTheoreticalQuantity,
@@ -27,15 +32,18 @@ function formatDate(value: string | null): string {
 
 export default async function OrdenDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [order, authState, execution] = await Promise.all([
+  const [order, authState, execution, reconciliation, reviewHistory] = await Promise.all([
     getWorkOrder(id),
     getAuthContext(),
     getSprayExecution(id),
+    getWorkOrderReconciliation(id),
+    getReviewHistory(id),
   ]);
   if (!order) notFound();
 
   const role = authState.status === "ok" ? authState.context.role : null;
   const canManage = can(role, "work-orders:create") && (order.status === "draft" || order.status === "pending");
+  const canReview = can(role, "work-orders:review") && order.status === "pending_review";
 
   const totalSprayVolume =
     order.targetSprayVolumePerHa != null
@@ -175,10 +183,19 @@ export default async function OrdenDetallePage({ params }: { params: Promise<{ i
         </Card>
       ) : null}
 
+      {canReview ? <ReviewActions workOrderId={order.id} orderNumber={order.orderNumber} /> : null}
+
       {execution &&
-      (order.status === "in_progress" || order.status === "pending_review" || order.status === "completed") ? (
+      (order.status === "in_progress" ||
+        order.status === "pending_review" ||
+        order.status === "completed" ||
+        order.status === "observed") ? (
         <ExecutionPanel execution={execution} status={order.status} />
       ) : null}
+
+      {reconciliation ? <ReconciliationPanel summary={reconciliation} /> : null}
+
+      <ReviewHistory items={reviewHistory} />
     </div>
   );
 }

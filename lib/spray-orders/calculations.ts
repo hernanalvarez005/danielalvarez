@@ -2,7 +2,7 @@ import { DOSE_UNITS, type DoseUnit } from "./constants";
 
 export type CanonicalUnit = "L" | "kg";
 
-const DOSE_UNIT_INFO: Record<DoseUnit, { canonicalUnit: CanonicalUnit; divisor: number }> = {
+export const DOSE_UNIT_INFO: Record<DoseUnit, { canonicalUnit: CanonicalUnit; divisor: number }> = {
   l_ha: { canonicalUnit: "L", divisor: 1 },
   ml_ha: { canonicalUnit: "L", divisor: 1000 },
   cc_ha: { canonicalUnit: "L", divisor: 1000 },

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireOrgContext } from "@/lib/masters/require-org";
 import { flattenZodError } from "@/lib/masters/utils";
-import { sprayOrderConfirmSchema, sprayOrderDraftSchema } from "./schemas";
+import { reviewDecisionSchema, sprayOrderConfirmSchema, sprayOrderDraftSchema } from "./schemas";
 import type { ApplicationMethod, DoseUnit } from "./constants";
 
 export interface SprayOrderActionInput {
@@ -113,6 +113,69 @@ export async function updateSprayOrder(
   revalidatePath("/pulverizaciones");
   revalidatePath(`/pulverizaciones/${workOrderId}`);
   return { error: null, workOrderId: data as string };
+}
+
+function friendlyReviewError(message: string | undefined, fallback: string): string {
+  if (!message) return fallback;
+  if (message.includes("El comentario es obligatorio")) return message;
+  if (message.includes("not pending review")) {
+    return "Esta orden ya no está pendiente de revisión.";
+  }
+  if (message.includes("Only an observed work order can be resent")) {
+    return "Esta orden ya no está observada.";
+  }
+  if (message.includes("Not authorized")) return "No tenés permisos para esta acción.";
+  return fallback;
+}
+
+export interface ReviewActionInput {
+  workOrderId: string;
+  decision: "approved" | "observed";
+  notes: string | null;
+}
+
+export async function reviewSprayApplication(input: ReviewActionInput): Promise<SprayOrderActionResult> {
+  await requireOrgContext();
+  const parsed = reviewDecisionSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Revisá los datos de la revisión.",
+      fieldErrors: flattenZodError(parsed.error),
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_spray_application", {
+    p_work_order_id: parsed.data.workOrderId,
+    p_decision: parsed.data.decision,
+    p_notes: parsed.data.notes,
+  });
+
+  if (error) {
+    return { error: friendlyReviewError(error.message, "No se pudo registrar la revisión.") };
+  }
+
+  revalidatePath("/pulverizaciones");
+  revalidatePath(`/pulverizaciones/${parsed.data.workOrderId}`);
+  revalidatePath("/dashboard");
+  return { error: null };
+}
+
+export async function resendToReview(workOrderId: string): Promise<{ error: string | null }> {
+  await requireOrgContext();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("resend_to_review", { p_work_order_id: workOrderId });
+
+  if (error) {
+    return { error: friendlyReviewError(error.message, "No se pudo reenviar la orden a revisión.") };
+  }
+
+  revalidatePath("/pulverizaciones");
+  revalidatePath(`/pulverizaciones/${workOrderId}`);
+  revalidatePath("/mis-trabajos");
+  revalidatePath(`/mis-trabajos/${workOrderId}`);
+  revalidatePath("/dashboard");
+  return { error: null };
 }
 
 export async function cancelWorkOrder(id: string): Promise<{ error: string | null }> {

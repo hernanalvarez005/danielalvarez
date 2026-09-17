@@ -1,5 +1,7 @@
 export type MemberRole = "admin" | "engineer" | "applicator";
 
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 export interface Database {
   public: {
     Tables: {
@@ -744,6 +746,121 @@ export interface Database {
           },
         ];
       };
+      spray_reviews: {
+        Row: {
+          id: string;
+          organization_id: string;
+          work_order_id: string;
+          decision: string;
+          notes: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          work_order_id: string;
+          decision: string;
+          notes?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          work_order_id?: string;
+          decision?: string;
+          notes?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spray_reviews_work_order_id_organization_id_fkey";
+            columns: ["work_order_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "work_orders";
+            referencedColumns: ["id", "organization_id"];
+          },
+        ];
+      };
+      spray_reconciliation_settings: {
+        Row: {
+          organization_id: string;
+          product_warning_percent: number | null;
+          area_warning_percent: number | null;
+          spray_volume_warning_percent: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          organization_id: string;
+          product_warning_percent?: number | null;
+          area_warning_percent?: number | null;
+          spray_volume_warning_percent?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          product_warning_percent?: number | null;
+          area_warning_percent?: number | null;
+          spray_volume_warning_percent?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      spray_execution_change_log: {
+        Row: {
+          id: string;
+          organization_id: string;
+          work_order_id: string;
+          entity_type: string;
+          record_id: string;
+          action: string;
+          changed_by: string | null;
+          changed_at: string;
+          before: Json | null;
+          after: Json | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          work_order_id: string;
+          entity_type: string;
+          record_id: string;
+          action: string;
+          changed_by?: string | null;
+          changed_at?: string;
+          before?: Json | null;
+          after?: Json | null;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          work_order_id?: string;
+          entity_type?: string;
+          record_id?: string;
+          action?: string;
+          changed_by?: string | null;
+          changed_at?: string;
+          before?: Json | null;
+          after?: Json | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spray_execution_change_log_work_order_id_organization_id_fkey";
+            columns: ["work_order_id", "organization_id"];
+            isOneToOne: false;
+            referencedRelation: "work_orders";
+            referencedColumns: ["id", "organization_id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -814,6 +931,34 @@ export interface Database {
           p_water_liters: number;
           p_notes: string | null;
           p_products: SprayLoadProductInput[];
+        };
+        Returns: string;
+      };
+      delete_spray_load: {
+        Args: {
+          p_spray_load_id: string;
+        };
+        Returns: undefined;
+      };
+      review_spray_application: {
+        Args: {
+          p_work_order_id: string;
+          p_decision: string;
+          p_notes: string | null;
+        };
+        Returns: string;
+      };
+      resend_to_review: {
+        Args: {
+          p_work_order_id: string;
+        };
+        Returns: string;
+      };
+      update_spray_execution_summary: {
+        Args: {
+          p_work_order_id: string;
+          p_actual_area_ha: number;
+          p_notes: string | null;
         };
         Returns: string;
       };

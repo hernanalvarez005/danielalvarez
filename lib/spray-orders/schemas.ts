@@ -1,6 +1,18 @@
 import { z } from "zod";
 import { APPLICATION_METHODS, DOSE_UNITS } from "./constants";
 
+export const reviewDecisionSchema = z
+  .object({
+    workOrderId: z.uuid(),
+    decision: z.enum(["approved", "observed"]),
+    notes: z.string().nullable(),
+  })
+  .refine((data) => data.decision !== "observed" || (data.notes != null && data.notes.trim().length > 0), {
+    message: "El comentario es obligatorio para observar una aplicación",
+    path: ["notes"],
+  });
+export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
+
 export const sprayOrderProductSchema = z.object({
   productId: z.uuid("Elegí un producto"),
   doseValue: z.number().positive("La dosis tiene que ser mayor a 0"),

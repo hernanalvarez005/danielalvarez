@@ -1,4 +1,4 @@
-import { FileEdit, Circle, PlayCircle, ClipboardCheck, CheckCircle2, XCircle } from "lucide-react";
+import { FileEdit, Circle, PlayCircle, ClipboardCheck, CheckCircle2, XCircle, Eye } from "lucide-react";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import type { VariantProps } from "class-variance-authority";
 import { WORK_ORDER_STATUS_LABELS, type WorkOrderStatus } from "@/lib/spray-orders/constants";
@@ -20,6 +20,7 @@ const STATUS_CONFIG: Record<
   pending_review: { icon: ClipboardCheck, variant: "default" },
   completed: { icon: CheckCircle2, variant: "success" },
   cancelled: { icon: XCircle, variant: "destructive" },
+  observed: { icon: Eye, variant: "warning" },
 };
 
 export function StatusBadge({ status }: { status: WorkOrderStatus }) {

@@ -24,6 +24,7 @@ export const WORK_ORDER_STATUSES = [
   "pending_review",
   "completed",
   "cancelled",
+  "observed",
 ] as const;
 export type WorkOrderStatus = (typeof WORK_ORDER_STATUSES)[number];
 
@@ -34,10 +35,14 @@ export const WORK_ORDER_STATUS_LABELS: Record<WorkOrderStatus, string> = {
   pending_review: "Para revisar",
   completed: "Finalizada",
   cancelled: "Cancelada",
+  observed: "Observada",
 };
 
 /** Statuses this phase actually produces; the rest exist for Phase 4/5. */
 export const ACTIVE_PHASE_STATUSES: WorkOrderStatus[] = ["draft", "pending", "cancelled"];
+
+export const REVIEW_DECISIONS = ["approved", "observed", "resent"] as const;
+export type ReviewDecision = (typeof REVIEW_DECISIONS)[number];
 
 export function formatOrderNumber(orderNumber: number | string): string {
   return `OT-${String(orderNumber).padStart(6, "0")}`;

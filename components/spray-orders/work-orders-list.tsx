@@ -20,6 +20,7 @@ const STATUS_TABS: { value: "all" | WorkOrderStatus; label: string }[] = [
   { value: "pending", label: "Pendientes" },
   { value: "in_progress", label: "En ejecución" },
   { value: "pending_review", label: "Para revisar" },
+  { value: "observed", label: "Observadas" },
   { value: "completed", label: "Finalizadas" },
   { value: "cancelled", label: "Canceladas" },
 ];
